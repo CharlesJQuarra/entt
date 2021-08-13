@@ -33,7 +33,17 @@ struct entt_traits<Type, std::enable_if_t<std::is_enum_v<Type>>>
 template<typename Type>
 struct entt_traits<Type, std::enable_if_t<std::is_class_v<Type>>>
     : entt_traits<typename Type::entity_type>
-{};
+{
+  template<typename CastFromType>
+  inline typename Type::entity_type cast_to_integral(const CastFromType v) { return static_cast<typename Type::entity_type>(v); }
+  template<typename CastFromType>
+  inline typename Type::entity_type cast_to_entity(const CastFromType v) { return (template cast_to_integral<CastFromType>(v)) & entity_mask; }
+  template<typename CastFromType>
+  inline typename Type::version_type to_version(const CastFromType value) {
+    constexpr auto mask = (version_mask << entity_shift);
+    return ((cast_to_integral(value) & mask) >> entity_shift);
+  }
+};
 
 
 template<>
@@ -45,6 +55,16 @@ struct entt_traits<std::uint32_t> {
     static constexpr entity_type entity_mask = 0xFFFFF;
     static constexpr entity_type version_mask = 0xFFF;
     static constexpr std::size_t entity_shift = 20u;
+    
+    template<typename CastFromType>
+    inline typename Type::entity_type cast_to_integral(CastFromType v) { return static_cast<typename Type::entity_type>(v); }
+    template<typename CastFromType>
+    inline typename Type::entity_type cast_to_entity(CastFromType v) { return (template cast_to_integral<CastFromType>(v)) & entity_mask; }
+    template<typename CastFromType>
+    inline typename Type::version_type to_version(const CastFromType value) {
+      constexpr auto mask = (version_mask << entity_shift);
+      return ((cast_to_integral(value) & mask) >> entity_shift);
+    }
 };
 
 
@@ -57,10 +77,52 @@ struct entt_traits<std::uint64_t> {
     static constexpr entity_type entity_mask = 0xFFFFFFFF;
     static constexpr entity_type version_mask = 0xFFFFFFFF;
     static constexpr std::size_t entity_shift = 32u;
+    
+    template<typename CastFromType>
+    inline typename Type::entity_type cast_to_integral(CastFromType v) { return static_cast<typename Type::entity_type>(v); }
+    template<typename CastFromType>
+    inline typename Type::entity_type cast_to_entity(CastFromType v) { return (template cast_to_integral<CastFromType>(v)) & entity_mask; }
+    template<typename CastFromType>
+    inline typename Type::version_type to_version(const CastFromType value) {
+      constexpr auto mask = (version_mask << entity_shift);
+      return ((cast_to_integral(value) & mask) >> entity_shift);
+    }
 };
 
+struct LongLivedVersionIdType {
+  LongLivedVersionIdType* prev;
+  LongLivedVersionIdType* next;
+  using refcount_type = std::uint32_t;
+  
+  LongLivedVersionIdType() : prev(nullptr), next(nullptr) {}
+  
+  LongLivedVersionIdType* id() const { return this; }
+  inline bool operator==(const LongLivedVersionIdType* other) const {
+    return this == other;
+  };
+  
+  inline bool operator!=(const LongLivedVersionIdType* other) const {
+    return this != other;
+  }
+  
+};
 
-}
+template <Type>
+struct entt_traits<Type, std::enable_if_t<std::is_base_of<LongLivedVersionIdType, typename Type::version_type>::value>>
+{
+  using entity_type = typename Type::entity_type;
+  using version_type = std::add_pointer_t<LongLivedVersionIdType>;
+  using difference_type = std::int64_t;
+
+  template<typename CastFromType>
+  inline typename Type::entity_type cast_to_integral(CastFromType v) { return v.entity_id; }
+  template<typename CastFromType>
+  inline typename Type::entity_type cast_to_entity(CastFromType v) { return template cast_to_integral<CastFromType>(v); }
+  template<typename CastFromType>
+  inline LongLivedVersionIdType* to_version(const CastFromType value) {
+    return v.version_id;
+  }
+};
 
 
 /**
@@ -93,7 +155,7 @@ public:
      * @return The integral representation of the given value.
      */
     [[nodiscard]] static constexpr entity_type to_integral(const value_type value) ENTT_NOEXCEPT {
-        return static_cast<entity_type>(value);
+        return traits_type::template cast_to_integral<value_type>(value);
     }
 
     /**
@@ -102,7 +164,7 @@ public:
      * @return The integral representation of the entity part.
      */
     [[nodiscard]] static constexpr entity_type to_entity(const value_type value) ENTT_NOEXCEPT {
-        return (to_integral(value) & traits_type::entity_mask);
+        return traits_type::template cast_to_entity<value_type>(value);
     }
 
     /**
@@ -111,8 +173,7 @@ public:
      * @return The integral representation of the version part.
      */
     [[nodiscard]] static constexpr version_type to_version(const value_type value) ENTT_NOEXCEPT {
-        constexpr auto mask = (traits_type::version_mask << traits_type::entity_shift);
-        return ((to_integral(value) & mask) >> traits_type::entity_shift);
+        traits_type::template cast_to_version<value_type>(value);
     }
 
     /**
