@@ -71,7 +71,7 @@ namespace entt {
       return pnext;
     }
     
-    template< int LookAhead = 3 >
+    template< int LookAhead = 3, typename = void >
     LongLivedVersionIdType* upgrade_lookahead() {
       LongLivedVersionIdType* pnext[LookAhead];
       int idx = 0;
