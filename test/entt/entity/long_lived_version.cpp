@@ -36,5 +36,7 @@ TEST(LongLivedVersion, Traits) {
 }
 
 TEST(LongLivedVersion, BasicLinkedList) {
-
+  
+  entt::internal::LongLivedVersionIdType ll_root;
+  
 }
