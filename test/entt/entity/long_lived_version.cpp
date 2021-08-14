@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
+#include <entt/entity/long_lived_versions.hpp>
 
 TEST(LongLivedVersion, Traits) {
     using traits_type = entt::entt_traits<entt::entity>;
@@ -37,6 +38,9 @@ TEST(LongLivedVersion, Traits) {
 
 TEST(LongLivedVersion, BasicLinkedList) {
   
-  entt::internal::LongLivedVersionIdType ll_root;
+  entt::LongLivedVersionIdType ll_root;
+  using LVEntityId_t = entt::EntTypeWithLongTermVersionId;
+  //using traits_type = entt::entt_traits<LVEntityId_t>;
+  entt::basic_registry<LVEntityId_t> registry{};
   
 }
