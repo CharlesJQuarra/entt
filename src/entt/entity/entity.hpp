@@ -43,7 +43,7 @@ struct entt_traits<std::uint32_t> {
     inline static const version_type default_version() {
       return version_mask;
     }
-    
+
     template<typename CastFromType>
     inline static entity_type to_integral(CastFromType v) { return static_cast<entity_type>(v); }
     template<typename CastFromType>
@@ -57,6 +57,7 @@ struct entt_traits<std::uint32_t> {
     inline static version_type to_next_version(const CastFromType value) {
       return to_version(value) + 1u;
     }
+    inline static version_type first_nonzero_version() { return 1u; }
     inline static version_type inc_version(const version_type version) { return version + 1u; }
     template<typename CastToType>
     inline static constexpr CastToType construct(const entity_type entity, const version_type version) {
@@ -77,7 +78,7 @@ struct entt_traits<std::uint64_t> {
     inline static const version_type default_version() {
       return version_mask;
     }
-    
+
     template<typename CastFromType>
     inline static entity_type to_integral(CastFromType v) { return static_cast<entity_type>(v); }
     template<typename CastFromType>
@@ -91,6 +92,7 @@ struct entt_traits<std::uint64_t> {
     inline static version_type to_next_version(const CastFromType value) {
       return to_version(value) + 1u;
     }
+    inline static version_type first_nonzero_version() { return 1u; }
     inline static version_type inc_version(const version_type version) { return version + 1u; }
     template<typename CastToType>
     inline static constexpr CastToType construct(const entity_type entity, const version_type version) {
@@ -124,6 +126,7 @@ struct entt_traits<Type, std::enable_if_t<(std::is_same_v<std::add_pointer_t<Lon
     LongLivedVersionIdType* c_vid = to_version(value);
     return inc_version(c_vid);
   }
+  inline static version_type first_nonzero_version() { return default_version(); }
   inline static version_type inc_version(const version_type version) {
     if (version == nullptr)
       return default_version();
@@ -212,7 +215,7 @@ public:
     [[nodiscard]] static constexpr version_type to_version(const value_type value) ENTT_NOEXCEPT {
         return traits_type::template to_version<value_type>(value);
     }
-    
+
     /**
      * @brief Returns the next version of the underlying type.
      * @param value The value to convert.
@@ -221,7 +224,7 @@ public:
     [[nodiscard]] static version_type to_next_version(const value_type value) ENTT_NOEXCEPT {
         return traits_type::template to_next_version<value_type>(value);
     }
-    
+
     /**
      * @brief Returns the next version of the underlying version.
      * @param version The version to increment.
@@ -229,6 +232,10 @@ public:
      */
     [[nodiscard]] static version_type inc_version(const version_type version) ENTT_NOEXCEPT {
         return traits_type::inc_version(version);
+    }
+
+    [[nodiscard]] static version_type first_nonzero_version() ENTT_NOEXCEPT {
+        return traits_type::first_nonzero_version();
     }
 
     /**

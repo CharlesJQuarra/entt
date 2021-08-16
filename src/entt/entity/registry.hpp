@@ -174,7 +174,11 @@ public:
     [[nodiscard]] static version_type version(const entity_type entity) ENTT_NOEXCEPT {
         return traits_type::to_version(entity);
     }
-    
+
+    [[nodiscard]] static version_type first_nonzero_version() ENTT_NOEXCEPT {
+      return traits_type::first_nonzero_version();
+    }
+
     /**
      * @brief Upgrades the version stored along with an entity identifier.
      * @param entity An entity identifier, either valid or not.
@@ -183,7 +187,7 @@ public:
     [[nodiscard]] static version_type version_upgrade(const entity_type entity) ENTT_NOEXCEPT {
         return traits_type::to_next_version(entity);
     }
-    
+
     /**
      * @brief Upgrades the version stored along with an entity identifier.
      * @param entity An entity identifier, either valid or not.
